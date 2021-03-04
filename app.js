@@ -19,7 +19,7 @@ app.get('/api/', (req, res) => {
 });
 
 app.use('/api/examples', routes.example);
-app.use('/api/users', routes.user);
+//app.use('/api/users', routes.user);
 
 // Server
 const server = app.listen(PORT, () => console.log(`Server is running on PORT: ${PORT}`));
