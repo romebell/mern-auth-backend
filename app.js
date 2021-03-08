@@ -2,7 +2,9 @@
 require('dotenv').config()
 const express = require('express');
 const routes = require('./routes');
-const cors = require('cors')
+const cors = require('cors');
+const passport = require('passport')
+require('./config/passport')(passport);
 
 // App Set up
 const app = express();
@@ -12,6 +14,7 @@ const PORT = process.env.PORT || 8000;
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json()); // JSON parsing
 app.use(cors()); // allow all CORS requests
+app.use(passport.initialize());
 
 // API Routes
 app.get('/api/', (req, res) => {
@@ -19,7 +22,8 @@ app.get('/api/', (req, res) => {
 });
 
 app.use('/api/examples', routes.example);
-//app.use('/api/users', routes.user);
+app.use('/api/users', routes.user);
+
 
 // Server
 const server = app.listen(PORT, () => console.log(`Server is running on PORT: ${PORT}`));

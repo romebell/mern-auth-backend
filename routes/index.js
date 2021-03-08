@@ -1,5 +1,6 @@
 module.exports = {
-  example: require('./example')
+  example: require('./example'),
+  user: require('./user'),
 }
 
 
