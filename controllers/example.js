@@ -1,85 +1,101 @@
-const db = require('../models');
+const express = require('express');
+const router = express.Router();
+const Example = require('../models/example');
 
-const index = (req, res) => {
+router.get('/', (req, res) => {
     // Purpose: Fetch all examples from DB and return
     console.log('=====> Inside GET /examples');
 
-    db.Example.find({}, (err, foundExamples) => {
-        if (err) console.log('Error in example#index:', err);
-        res.json(foundExamples);
+    Example.findById(req.params.id)
+    .then(foundExamples => {
+        res.json({ example: foundExamples });
+    })
+    .catch(err => {
+        console.log('Error in example#index:', err);
+        res.json({ message: 'Error occured... Please try again.'})
     });
-}
+});
 
-const show = (req, res) => {
+router.get('/query', (req, res) => {
+    // Purpose: Fetch one example by searching in DB and return
+    console.log('=====> Inside GET /examples/query');
+    console.log('=====> req.query', req.query);
+
+    Example.find(req.query)
+    .then(example => {
+        res.json({ example: example });
+    })
+    .catch(err => {
+        console.log('Error in example#query:', err);
+        res.json({ message: 'Error occured... Please try again.'})
+    });
+});
+
+router.get('/:id', (req, res) => {
     // Purpose: Fetch one example from DB and return
     console.log('=====> Inside GET /examples/:id');
-    console.log('=====> req.params');
-    console.log(req.params); // object used for finding example by id
 
-    db.Example.findById(req.params.id, (err, foundExample) => {
-        if (err) console.log('Error in example#show:', err);
-        res.json(foundExample);
+    Example.findById(req.params.id)
+    .then(example => {
+        res.json({ example: example });
+    })
+    .catch(err => {
+        console.log('Error in example#show:', err);
+        res.json({ message: 'Error occured... Please try again.'})
     });
-};
+});
 
-const query = (req, res) => {
-    // Purpose: Fetch one example via query from DB and return
-    console.log('=====> Inside "query" POST /examples/query');
-    console.log('=====> req.query');
-    console.log(req.body); // object using for doing a query search on an example
 
-    db.Example.find(req.body, (err, foundExample) => {
-        if (err) console.log('Error in example#query:', err);
-        res.json(foundExample);
-    });
-}
-
-const create = (req, res) => {
+router.post('/', (req, res) => {
     // Purpose: Create one example by adding body to DB, and return
     console.log('=====> Inside POST /examples');
-    console.log('=====> req.body');
-    console.log(req.body); // object used for creating new example
+    console.log('=====> req.body', req.body); // object used for creating new example
 
-    db.Example.create(req.body, (err, savedExample) => {
-        if (err) console.log('Error in example#create:', err);
-        res.json(savedExample);
-    });
-};
+    Example.create(req.body)
+    .then(newExample => {
+        console.log('New example created', newExample);
+        res.redirect(`/examples/${newExample.id}`);
+    })
+    .catch(err => {
+        console.log('Error in example#create:', err);
+        res.json({ message: 'Error occured... Please try again.'});
+    })
+});
 
-const update = (req, res) => {
+
+
+router.put('/:id', (req, res) => {
     // Purpose: Update one example in the DB, and return
     console.log('=====> Inside PUT /examples/:id');
-    console.log('=====> req.params');
-    console.log(req.params); // object used for finding example by id
-    console.log('=====> req.body');
-    console.log(req.body); // object used for updating example
+    console.log('=====> req.params', req.params); // object used for finding example by id
+    console.log('=====> req.body', req.body); // object used for updating example
 
-    db.Example.findByIdAndUpdate(req.params.id, req.body, { new: true }, (err, updatedExample) => {
-        if (err) console.log('Error in example#update:', err);
-        res.json(updatedExample);
+    Example.findByIdAndUpdate(req.params.id, req.body, { new: true })
+    .then(updatedExample => {
+        console.log('Example updated', updatedExample);
+        res.redirect(`/examples/${req.params.id}`);
+    })
+    .catch(err => {
+        console.log('Error in example#update:', err);
+        res.json({ message: 'Error occured... Please try again.'});
     });
-};
+});
 
-const destroy = (req, res) => {
+router.delete('/:id', (req, res) => {
     // Purpose: Update one example in the DB, and return
     console.log('=====> Inside DELETE /examples/:id');
     console.log('=====> req.params');
     console.log(req.params); // object used for finding example by id
     
-    db.Example.findByIdAndDelete(req.params.id, (err, deletedExample) => {
-        if (err) console.log('Error in example#destroy:', err);
-          res.sendStatus(200);
-          console.log(deletedExample);
+    Example.findByIdAndRemove(req.params.id)
+    .then(response => {
+        console.log(`Example ${req.params.id} was deleted`, response);
+        res.redirect(`/examples`);
+    })
+    .catch(err => {
+        console.log('Error in example#delete:', err);
+        res.json({ message: 'Error occured... Please try again.'});
     });
-};
+});
 
-module.exports = {
-    index,
-    show,
-    create,
-    update,
-    destroy,
-    query,
-};
-
-///////////////////////////////////////////////////////////////////////////////////////////
+module.exports = router;
