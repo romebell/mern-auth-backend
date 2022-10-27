@@ -1,26 +1,26 @@
 // Imports
 require('dotenv').config();
-const passport = require('passport');
+const express = require('express');
+const router = express.Router();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const passport = require('passport');
 const { JWT_SECRET } = process.env;
 
-// Database
-const db = require('../models');
+// DB Models
+const User = require('../models/user');
 
 // Controllers
-const test = (req, res) => {
+router.get('/test', (req, res) => {
     res.json({ message: 'User endpoint OK! ✅' });
-}
+});
 
-
-const register = (req, res) => {
+router.post('/signup', (req, res) => {
     // POST - adding the new user to the database
-    console.log('===> Inside of /register');
-    console.log('===> /register -> req.body');
-    console.log(req.body);
+    console.log('===> Inside of /signup');
+    console.log('===> /register -> req.body',req.body);
 
-    db.User.findOne({ email: req.body.email })
+    User.findOne({ email: req.body.email })
     .then(user => {
         // if email already exists, a user will come back
         if (user) {
@@ -28,7 +28,7 @@ const register = (req, res) => {
             return res.status(400).json({ message: 'Email already exists' });
         } else {
             // Create a new user
-            const newUser = new db.User({
+            const newUser = new User({
                 name: req.body.name,
                 email: req.body.email,
                 password: req.body.password
@@ -43,27 +43,32 @@ const register = (req, res) => {
                     // Change the password in newUser to the hash
                     newUser.password = hash;
                     newUser.save()
-                    .then(createdUser => res.json(createdUser))
-                    .catch(err => console.log(err));
+                    .then(createdUser => res.json({ user: createdUser}))
+                    .catch(err => {
+                        console.log('error with creating new user', err);
+                        res.json({ message: 'Error occured... Please try again.'});
+                    });
                 });
             });
         }
     })
-    .catch(err => console.log('Error finding user', err))
-}
+    .catch(err => { 
+        console.log('Error finding user', err);
+        res.json({ message: 'Error occured... Please try again.'})
+    })
+});
 
-const login = async (req, res) => {
+router.post('/login', async (req, res) => {
     // POST - finding a user and returning the user
     console.log('===> Inside of /login');
-    console.log('===> /login -> req.body');
-    console.log(req.body);
+    console.log('===> /login -> req.body', req.body);
 
-    const foundUser = await db.User.findOne({ email: req.body.email });
+    const foundUser = await User.findOne({ email: req.body.email });
 
     if (foundUser) {
         // user is in the DB
         let isMatch = await bcrypt.compare(req.body.password, foundUser.password);
-        console.log(isMatch);
+        console.log('Does the passwords match?', isMatch);
         if (isMatch) {
             // if user match, then we want to send a JSON Web Token
             // Create a token payload
@@ -80,8 +85,7 @@ const login = async (req, res) => {
                     res.status(400).json({ message: 'Session has endedd, please log in again'});
                 }
                 const legit = jwt.verify(token, JWT_SECRET, { expiresIn: 60 });
-                console.log('===> legit');
-                console.log(legit);
+                console.log('===> legit', legit);
                 res.json({ success: true, token: `Bearer ${token}`, userData: legit });
             });
 
@@ -91,34 +95,28 @@ const login = async (req, res) => {
     } else {
         return res.status(400).json({ message: 'User not found' });
     }
-}
+});
 
 // private
-const profile = (req, res) => {
+router.get('/profile', passport.authenticate('jwt', { session: false }), (req, res) => {
     console.log('====> inside /profile');
     console.log(req.body);
     console.log('====> user')
     console.log(req.user);
     const { id, name, email } = req.user; // object with user object inside
     res.json({ id, name, email });
-}
+});
 
-const messages = async (req, res) => {
+router.get('/messages', passport.authenticate('jwt', { session: false }), async (req, res) => {
     console.log('====> inside /messages');
     console.log(req.body);
     console.log('====> user')
     console.log(req.user);
     const { id, name, email } = req.user; // object with user object inside
     const messageArray = ['message 1', 'message 2', 'message 3', 'message 4', 'message 5', 'message 6', 'message 7', 'message 8', 'message 9'];
-    const sameUser = await db.User.findOne({ _id: id });
+    const sameUser = await User.findById(id);
     res.json({ id, name, email, message: messageArray, sameUser });
-}
+});
 
 // Exports
-module.exports = {
-    test,
-    register,
-    login,
-    profile,
-    messages,
-}
+module.exports = router;

@@ -1,4 +1,4 @@
-const db = require('./models');
+const Example = require('../models/example');
 
 const examples = [
   { name: 'Example 1', completed: true}, 
@@ -8,13 +8,13 @@ const oneExample = { name: 'Example 3', completed: true };
 
 
 const addManyExamples = async () => {
-  const savedExamples = await db.Example.insertMany(examples);
+  const savedExamples = await Example.insertMany(examples);
   console.log('=======> Saved Examples.');
   console.log(savedExamples);
 }
 
 const addOneExample = async () => {
-  const savedOneExample = await db.Example.create(oneExample);
+  const savedOneExample = await Example.create(oneExample);
   console.log('=======> Saved One Example.');
   console.log(savedOneExample);
 }

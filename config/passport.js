@@ -2,15 +2,14 @@ require('dotenv').config();
 // A passport strategy for authenticating with a JSON Web Token
 // This allows to authenticate endpoints using a token
 const { Strategy, ExtractJwt } = require('passport-jwt');
-const mongoose = require('mongoose');
 
 // Import user model
-const { User } = require('../models');
+const User = require('../models/user');
 
-
-const options = {};
-options.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
-options.secretOrKey = process.env.JWT_SECRET;
+const options = {
+    jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+    secretOrKey: process.env.JWT_SECRET
+};
 
 module.exports = (passport) => {
     // Add code here
