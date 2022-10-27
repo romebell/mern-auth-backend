@@ -1,8 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const Example = require('../models/example');
+const passport = require('passport');
 
-router.get('/', (req, res) => {
+// put this inside route to authenticate -> passport.authenticate('jwt', { session: false })
+
+router.get('/', passport.authenticate('jwt', { session: false }), (req, res) => {
     // Purpose: Fetch all examples from DB and return
     console.log('=====> Inside GET /examples');
 
