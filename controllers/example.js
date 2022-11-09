@@ -9,9 +9,9 @@ router.get('/', passport.authenticate('jwt', { session: false }), (req, res) => 
     // Purpose: Fetch all examples from DB and return
     console.log('=====> Inside GET /examples');
 
-    Example.findById(req.params.id)
+    Example.find({})
     .then(foundExamples => {
-        res.json({ example: foundExamples });
+        res.json({ examples: foundExamples });
     })
     .catch(err => {
         console.log('Error in example#index:', err);
